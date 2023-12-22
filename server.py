@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for,request,redirect,url
 from flask_socketio import SocketIO,send,join_room,leave_room,send,emit
 from flask_login import LoginManager,login_required, login_user, logout_user,current_user
 
-from db import add_room_members, get_room, get_room_members, get_rooms_for_user, get_user, is_room_member, save_room, save_user
+from db import add_room_members, get_room, get_room_members, get_rooms_for_user, get_user, is_room_admin, is_room_member, remove_room_members, save_room, save_user, update_room
 from user import User
 from flask_session import Session
 
@@ -100,6 +100,35 @@ def create_room():
             message = "Oda oluşturulamadı."
     return render_template('create_room.html', message=message)
 
+@app.route('/rooms/<room_id>/edit', methods=['GET','POST'])
+def edit_room(room_id):
+    if not session.get("username"):
+        return redirect("/login")
+    
+    room=get_room(room_id)
+    if room and is_room_admin(room_id,session['username']):
+        mevcut_room_member = [uye[1] for uye in get_room_members(int(room_id))]
+        
+        if request.method == 'POST':
+            room_name=request.form.get('room_name')
+            update_room(room_id,room_name)
+            
+            new_members=[username.strip() for username in request.form.get('members').split(',')]
+            
+            members_to_add = list(set(new_members) - set(mevcut_room_member))
+            members_to_remove = list(set(mevcut_room_member) - set(new_members))
+            
+            if len(members_to_add):
+                add_room_members(room_id, room_name, members_to_add,session['username'] )
+            if len(members_to_remove):
+                remove_room_members(room_id, members_to_remove)
+        
+        
+        oda_uye_str=",".join(mevcut_room_member)
+        return render_template('edit_room.html',room=room[1],room_members_str=oda_uye_str)
+    else:
+        return "Oda bulunamadı.",404
+    
 
 @app.route('/rooms/<room_id>/')
 def view_room(room_id):

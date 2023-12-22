@@ -207,16 +207,20 @@ def add_room_members(room_id, room_name, usernames, added_by):
 
 def remove_room_members(room_id, usernames):
     try:
-        # Odaya ait belirli kullanıcıları sil
-        mycursor.execute("""
+        print("SİLME İŞLEMİ")
+        delet_query = """
             DELETE FROM room_members
-            WHERE room_id = %s AND username IN %s
-        """, (room_id, tuple(usernames)))
+            WHERE room_id = %s AND username = %s
+         """
+        for username in usernames:
+            mycursor.execute(delet_query, (room_id, username))
 
         mydb.commit()
         print(f"Room members removed successfully.")
     except mysql.connector.Error as e:
         print(f"Hata: {e}")
+
+
 
 def get_room_members(room_id):
     try:
