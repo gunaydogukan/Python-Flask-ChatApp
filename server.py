@@ -36,7 +36,7 @@ def login():
     
     if session.get("username"):
         print("çalışıyor")
-        return render_template('index.html')
+        return redirect(url_for('home'))
     
     message = ''
     if request.method == 'POST':
