@@ -47,6 +47,17 @@ mycursor.execute("""
     )
 """)
 
+mycursor.execute("""
+    CREATE TABLE IF NOT EXISTS messages (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        room_id INT NOT NULL,
+        text TEXT NOT NULL,
+        sender VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+""")
+
+
 
 
 def save_user(username, email, password):
@@ -68,7 +79,6 @@ def save_user(username, email, password):
         else:
             raise e
     
-
 def get_user(username):
     user = None
     try:
@@ -97,7 +107,6 @@ def get_user(username):
         print(f"HATA ? ? ******** =  {e}")
     return None
 
-
 def save_room(room_name,created_by):
     
     room_id = None
@@ -125,7 +134,6 @@ def save_room(room_name,created_by):
     add_room_member(room_id, room_name, created_by, created_by, is_room_admin=True)
     return room_id
         
-
 def update_room(room_id, room_name):
     try:
         # Odanın adını güncelle
@@ -158,7 +166,7 @@ def get_room(room_id):
 
         if room_data:
             room_id, name, created_by, created_at = room_data
-            print(f"Room found: id={room_id}, name={name}, created_by={created_by}, created_at={created_at}")
+            print(f"Oda Bulundu: id={room_id}, name={name}, created_by={created_by}, created_at={created_at}")
             return room_data
         else:
             print("Room not found.")
@@ -219,8 +227,6 @@ def remove_room_members(room_id, usernames):
         print(f"Room members removed successfully.")
     except mysql.connector.Error as e:
         print(f"Hata: {e}")
-
-
 
 def get_room_members(room_id):
     try:
@@ -298,6 +304,20 @@ def is_room_admin(room_id, username):
         print(f"Hata: {e}")
         return False
 
+def save_message(room_id,text,sender):
+    try:
+        date_tame=datetime.now()
+        insert_query = """
+            INSERT INTO messages (room_id, text, sender,created_at)
+            VALUES (%s, %s, %s,%s)
+        """
+        mycursor.execute(insert_query,(room_id,text,sender,date_tame))
+        
+        mydb.commit()
+        print("mesaj yüklendi")
+    except mysql.connector.Error as e:
+        print(f"HATA: {e}")
+    
 
 
 

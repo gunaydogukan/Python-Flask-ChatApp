@@ -31,7 +31,7 @@
         
         socket.emit('join_room',{
             username:"{{username}}",
-            room:"{{room.id}}"
+            room:"{{room[0]}}"
         })
 
         let message_input = document.getElementById('message_input');
@@ -42,7 +42,7 @@
             if (message.length) {
                 socket.emit('send_message', {
                     username: "{{ username }}",
-                    room: "{{room.id}}",
+                    room: "{{room[0]}}",
                     message: message
                 })
             }

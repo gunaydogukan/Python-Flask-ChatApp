@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for,request,redirect,url
 from flask_socketio import SocketIO,send,join_room,leave_room,send,emit
 from flask_login import LoginManager,login_required, login_user, logout_user,current_user
 
-from db import add_room_members, get_room, get_room_members, get_rooms_for_user, get_user, is_room_admin, is_room_member, remove_room_members, save_room, save_user, update_room
+from db import add_room_members, get_room, get_room_members, get_rooms_for_user, get_user, is_room_admin, is_room_member, remove_room_members, save_message, save_room, save_user, update_room
 from user import User
 from flask_session import Session
 
@@ -100,6 +100,7 @@ def create_room():
             message = "Oda oluşturulamadı."
     return render_template('create_room.html', message=message)
 
+
 @app.route('/rooms/<room_id>/edit', methods=['GET','POST'])
 def edit_room(room_id):
     if not session.get("username"):
@@ -149,6 +150,11 @@ def view_room(room_id):
 @socketio.on('send_message')
 def handle_send_message_event(data):
     app.logger.info("{},{} numaralı odaya mesah gönderdi: {}".format(data['username'],data['room'],data['message']))
+    
+    str= data['room']
+    print(str)
+    save_message(str,data['message'],data['username'])
+    
     socketio.emit('receive_message', data, room=data['room'])
 
 @socketio.on('join_room')
