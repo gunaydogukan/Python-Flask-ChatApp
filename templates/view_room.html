@@ -7,7 +7,13 @@
 </head>
 <body>
     <h1>{{ room[1] }} adlı odaya hoşgeldiniz</h1>
-    <div id='messages'></div>
+    <div id='messages'>
+        {% for message in messages %}
+        <div>
+            <b>{{ message[3] }}&nbsp;[{{message[4]}}]:&nbsp;</b>{{ message[2] }}
+        </div>
+    {% endfor %}
+</div>
 
     <form id="message_input_form">
         <input type="text" id="message_input" placeholder="mesaj gir">
@@ -54,15 +60,17 @@
     socket.on('receive_message', function (data) {
         console.log(data);
         const newNode = document.createElement('div');
-        newNode.innerHTML = `<b>${data.username}:&nbsp;</b> ${data.message}`;
+        newNode.innerHTML = `<b>${data.username}&nbsp;[${data.created_at}]:&nbsp;</b> ${data.message}`;
         document.getElementById('messages').appendChild(newNode);
     });
     
     socket.on('join_room_announcement',function(data){
         console.log(data);
-        const newNode = document.createElement('div');
-        newNode.innerHTML = `<b>${data.username}</b> Odaya katıldı`;
-        document.getElementById('messages').appendChild(newNode);
+        if (data.username !== "{{ username }}") {
+            const newNode = document.createElement('div');
+            newNode.innerHTML = `<b>${data.username}</b> Odaya katıldı`;
+            document.getElementById('messages').appendChild(newNode);
+        }
     });
     
 </script>

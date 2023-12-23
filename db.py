@@ -317,7 +317,36 @@ def save_message(room_id,text,sender):
         print("mesaj yüklendi")
     except mysql.connector.Error as e:
         print(f"HATA: {e}")
+
+def get_message(room_id):
+    try:
+        with closing(mydb.cursor()) as mycursor:
+            mycursor.execute("""
+                SELECT * FROM messages
+                WHERE room_id = %s
+            """, (room_id,))
+
+            messages_data = mycursor.fetchall()
+
+            if messages_data:
+                print(f"Mesaj bulunda , Oda={room_id}")
+                messages_data = [list(message) for message in messages_data]
+
+                for message in messages_data:
+                    message[4] = message[4].strftime("%d %b, %H:%M")
+
+                return messages_data
+
     
+                
+                return messages_data
+                
+            else:
+                print(f"Mesaj Bulunamadı={room_id}")
+                return []
+    except mysql.connector.Error as e:
+        print(f"Hata: {e}")
+        return []
 
 
 

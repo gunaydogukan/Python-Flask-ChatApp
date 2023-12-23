@@ -1,8 +1,9 @@
+from datetime import datetime
 from flask import Flask, render_template, redirect, url_for,request,redirect,url_for,session
 from flask_socketio import SocketIO,send,join_room,leave_room,send,emit
 from flask_login import LoginManager,login_required, login_user, logout_user,current_user
 
-from db import add_room_members, get_room, get_room_members, get_rooms_for_user, get_user, is_room_admin, is_room_member, remove_room_members, save_message, save_room, save_user, update_room
+from db import add_room_members, get_message, get_room, get_room_members, get_rooms_for_user, get_user, is_room_admin, is_room_member, remove_room_members, save_message, save_room, save_user, update_room
 from user import User
 from flask_session import Session
 
@@ -142,7 +143,8 @@ def view_room(room_id):
     if room and is_room_member(room_id,session['username']):
         room_uye=get_room_members(room_id)
         print("ifin içine girdik ","room üye = ",room_uye)
-        return render_template('view_room.html',username =session.get("username") ,room=room,room_members=room_uye)
+        message=get_message(room_id)
+        return render_template('view_room.html',username =session.get("username") ,room=room,room_members=room_uye,messages=message)
     else:
         return "Oda bulunamadı",404
 
@@ -150,6 +152,8 @@ def view_room(room_id):
 @socketio.on('send_message')
 def handle_send_message_event(data):
     app.logger.info("{},{} numaralı odaya mesah gönderdi: {}".format(data['username'],data['room'],data['message']))
+    
+    data['created_at'] = datetime.now().strftime("%d %b, %H:%M")
     
     str= data['room']
     print(str)
