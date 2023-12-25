@@ -6,6 +6,7 @@ from user import User
 import mysql.connector
 from contextlib import closing
 
+
 mydb = mysql.connector.connect(
   host="localhost",
    user="root",
@@ -56,8 +57,6 @@ mycursor.execute("""
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
 """)
-
-
 
 
 def save_user(username, email, password):
@@ -318,31 +317,34 @@ def save_message(room_id,text,sender):
     except mysql.connector.Error as e:
         print(f"HATA: {e}")
 
-def get_message(room_id):
-    try:
+message_fetch_limit=3 # Sayfa başına gösterilecek mesaj sayısı
+
+def get_message(room_id,page=0):
+    try: 
+        offset = page * message_fetch_limit
+
         with closing(mydb.cursor()) as mycursor:
             mycursor.execute("""
                 SELECT * FROM messages
                 WHERE room_id = %s
-            """, (room_id,))
+                ORDER BY created_at DESC
+                LIMIT %s OFFSET %s
+            """, (room_id, message_fetch_limit, offset))
 
             messages_data = mycursor.fetchall()
 
             if messages_data:
-                print(f"Mesaj bulunda , Oda={room_id}")
+                print(f"Mesaj bulundu, Oda={room_id}")
                 messages_data = [list(message) for message in messages_data]
 
                 for message in messages_data:
                     message[4] = message[4].strftime("%d %b, %H:%M")
-
-                return messages_data
-
-    
+                    
                 
-                return messages_data
-                
+
+                return messages_data[::-1]
             else:
-                print(f"Mesaj Bulunamadı={room_id}")
+                print(f"Mesaj Bulunamadı, Oda={room_id}")
                 return []
     except mysql.connector.Error as e:
         print(f"Hata: {e}")

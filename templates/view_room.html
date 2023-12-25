@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>MaddChat</title>
 </head>
 <body>
     <h1>{{ room[1] }} adlı odaya hoşgeldiniz</h1>
+    <button type="button" id="load_older_messages_btn">Eski mesajları göster</button>
     <div id='messages'>
         {% for message in messages %}
         <div>
@@ -32,7 +33,6 @@
 
 <script>
     const socket = io.connect("http://127.0.0.1:5000");
-    
     socket.on('connect',function(){
         
         socket.emit('join_room',{
@@ -57,6 +57,38 @@
         }
     });
 
+    let page = 0;
+
+    document.getElementById("load_older_messages_btn").onclick = (e) => {
+        e.preventDefault();
+        page += 1;
+        fetch("/rooms/{{room[0]}}/messages/?page=" + page ,{
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response =>{ 
+            response.json().then(messages => {
+                messages.reverse().forEach(message => prepend_message(message.text, message.username, message.created_at));
+            })
+        })
+    };
+
+    function prepend_message(message, username, created_at){
+        const newNode = document.createElement('div');
+        newNode.innerHTML = `<b>${username}&nbsp;[${created_at}]:&nbsp;</b> ${message}`;
+        const messages_div=document.getElementById('messages');
+        messages_div.insertBefore(newNode, messages_div.firstChild);
+    }
+
+    window.onbeforeunload = function () {
+        socket.emit('leave_room', {
+            username: "{{ username }}",
+            room: "{{room[0]}}"
+        })
+    };
+
+
     socket.on('receive_message', function (data) {
         console.log(data);
         const newNode = document.createElement('div');
@@ -71,6 +103,13 @@
             newNode.innerHTML = `<b>${data.username}</b> Odaya katıldı`;
             document.getElementById('messages').appendChild(newNode);
         }
+    });
+
+    socket.on('leave_room_announcement', function (data) {
+        console.log(data);
+        const newNode = document.createElement('div');
+        newNode.innerHTML = `<b>${data.username}</b> Odadan ayrıldı`;
+        document.getElementById('messages').appendChild(newNode);
     });
     
 </script>
