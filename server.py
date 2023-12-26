@@ -7,6 +7,10 @@ import json
 from bson.json_util import dumps
 from flask import jsonify
 
+import json
+from bson.json_util import dumps
+from flask import jsonify
+
 from db import add_room_members, edit_room_members, get_message, get_room, get_room_members, get_rooms_for_user, get_user, is_room_admin, is_room_member, remove_room_members, save_message, save_room, save_user, update_room
 from user import User
 from flask_session import Session
@@ -22,6 +26,9 @@ login_manager.init_app(app)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+
+
+
 
 @app.route('/')
 def home():
@@ -160,34 +167,6 @@ def view_room(room_id):
     else:
         return "Oda bulunamadı",404
 
-
-@app.route('/rooms/<room_id>/messages/')
-def get_older_messages(room_id):
-
-    if not session.get("username"):
-        return redirect("/login") 
-    print("Get_older_mesaj")
-    
-    room=get_room(room_id)
-    if room and is_room_member(room_id,session['email']):
-        page = int(request.args.get('page', 0))
-        messages=get_message(room_id,page) 
-        
-        message_dicts = [
-        {
-            "id": message[0],
-            "room_id": message[1],
-            "text": message[2],
-            "username": message[3],
-            "created_at": message[4]
-        }
-            for message in messages
-            ]
-        
-        return jsonify(message_dicts)
-    else:
-        return "Oda bulunamadı",404
-    
 
 @socketio.on('send_message')
 def handle_send_message_event(data):
