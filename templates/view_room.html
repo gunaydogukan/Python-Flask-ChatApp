@@ -3,75 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>MaddChat</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            background-color: #007bff;
+            color: #fff;
+            width: 200px;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        #main-content {
+            flex: 1;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            transition: margin-left 0.5s;
+        }
+
+        h1, h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        .chat-window {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            background-color: #f9f9f9; /* Mesaj kutusunun arka planını soluk beyaz yap */
+            height: 65vh; /* Mesaj kutusunun yüksekliğini ayarla */
+        }
+
+        .user-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .user-list-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: #fff;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .user-list-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .selected {
+            background-color: #f0f0f0;
+        }
+
+        .message-input {
+            display: flex;
+            margin-top: 20px;
+        }
+
+        .message-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .message-input button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .message-input button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-    <h1>{{ room[1] }} adlı odaya hoşgeldiniz</h1>
-    <div id='messages'>
-        {% for message in messages %}
-        <div>
-            <b>{{ message[3] }}&nbsp;[{{message[4]}}]:&nbsp;</b>{{ message[2] }}
-        </div>
-    {% endfor %}
-</div>
+    <div id="sidebar">
+        <h1>MaddChat</h1>
+        <h3>
+            {% if session.username %}
+                {{ session.username }} isimli kullanıcı giriş yaptı. <a href="/logout">Çıkış</a>
+            {% else %}
+                Giriş yapılamadı. <a href="/login">Giriş Yap</a>
+            {% endif %}
+        </h3>
 
-    <form id="message_input_form">
-        <input type="text" id="message_input" placeholder="mesaj gir">
-        <button type="submit">Gönder</button>
-    </form>
-
-    <h2>Üyeler</h2>
-    <ul>
-        {% for member in room_members %}
-            <li>{{ member[1] }}</li>
-        {% endfor %}
-    </ul>
-
-</body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
-
-<script>
-    const socket = io.connect("http://127.0.0.1:5000");
-    
-    socket.on('connect',function(){
+        <h3><a href="javascript:history.go(-1)">Odalarım</a></h3>
+        <ul>
+            {% for room in rooms %}
+                <li><a href="/rooms/{{ room[0] }}">{{ room[2] }}, {{ room[0] }}</a></li>
+            {% endfor %}
+        </ul>
+        <h3><a href="/rooms/{{ room[0] }}/edit">Odayı Düzenle</a></h3>
+        <h3><a href="/create_room">Oda Oluştur</a></h3>
         
-        socket.emit('join_room',{
-            username:"{{username}}",
-            room:"{{room[0]}}"
-        })
+    </div>
+    
+    <div id="main-content">
+        <h1>{{ room[1] }} adlı odaya hoşgeldiniz</h1>
+        <div class="chat-window" id='messages'>
+            {% for message in messages %}
+                <div>
+                    <b>{{ message[3] }}&nbsp;[{{message[4]}}]:&nbsp;</b>{{ message[2] }}
+                </div>
+            {% endfor %}
+        </div>
 
-        let message_input = document.getElementById('message_input');
+        <form id="message_input_form" class="message-input">
+            <input type="text" id="message_input" placeholder="Mesajınızı yazın">
+            <button type="submit">Gönder</button>
+        </form>
 
-        document.getElementById('message_input_form').onsubmit = function (e) {
-            e.preventDefault();
-            let message = message_input.value.trim();
-            if (message.length) {
-                socket.emit('send_message', {
-                    username: "{{ username }}",
-                    room: "{{room[0]}}",
-                    message: message
-                })
+        <h2>Üyeler</h2>
+        <ul class="user-list">
+            {% for member in room_members %}
+                <li>{{ member }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+
+    <script>
+        const socket = io.connect("http://127.0.0.1:5000");
+        socket.on('connect', function () {
+
+            socket.emit('join_room', {
+                username: "{{username}}",
+                room: "{{room[0]}}"
+            })
+
+            let message_input = document.getElementById('message_input');
+
+            document.getElementById('message_input_form').onsubmit = function (e) {
+                e.preventDefault();
+                let message = message_input.value.trim();
+                if (message.length) {
+                    socket.emit('send_message', {
+                        username: "{{ username }}",
+                        room: "{{room[0]}}",
+                        message: message
+                    })
+                }
+                message_input.value = '';
+                message_input.focus();
             }
-            message_input.value = '';
-            message_input.focus();
-        }
-    });
+        });
 
-    socket.on('receive_message', function (data) {
-        console.log(data);
-        const newNode = document.createElement('div');
-        newNode.innerHTML = `<b>${data.username}&nbsp;[${data.created_at}]:&nbsp;</b> ${data.message}`;
-        document.getElementById('messages').appendChild(newNode);
-    });
-    
-    socket.on('join_room_announcement',function(data){
-        console.log(data);
-        if (data.username !== "{{ username }}") {
+        const messagesDiv = document.getElementById('messages');
+
+        // Mesajlar yüklendiğinde otomatik olarak en altına kaydırma
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+        // Yeni mesaj geldiğinde otomatik olarak en altına kaydırma
+        socket.on('receive_message', function (data) {
+            console.log(data);
             const newNode = document.createElement('div');
-            newNode.innerHTML = `<b>${data.username}</b> Odaya katıldı`;
-            document.getElementById('messages').appendChild(newNode);
-        }
-    });
-    
-</script>
+            newNode.innerHTML = `<b>${data.username}&nbsp;[${data.created_at}]:&nbsp;</b> ${data.message}`;
+            messagesDiv.appendChild(newNode);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        });
+
+        // Yeni kullanıcı katıldığında otomatik olarak en altına kaydırma
+        socket.on('join_room_announcement', function (data) {
+            console.log(data);
+            if (data.username !== "{{ username }}") {
+                const newNode = document.createElement('div');
+                newNode.innerHTML = `<b>${data.username}</b> Odaya katıldı`;
+                messagesDiv.appendChild(newNode);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        });
+
+        // Kullanıcı ayrıldığında otomatik olarak en altına kaydırma
+        socket.on('leave_room_announcement', function (data) {
+            console.log(data);
+            const newNode = document.createElement('div');
+            newNode.innerHTML = `<b>${data.username}</b> Odadan ayrıldı`;
+            messagesDiv.appendChild(newNode);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        });
+
+    </script>
+</body>
 </html>

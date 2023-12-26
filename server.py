@@ -3,7 +3,11 @@ from flask import Flask, render_template, redirect, url_for,request,redirect,url
 from flask_socketio import SocketIO,send,join_room,leave_room,send,emit
 from flask_login import LoginManager,login_required, login_user, logout_user,current_user
 
-from db import add_room_members, get_message, get_room, get_room_members, get_rooms_for_user, get_user, is_room_admin, is_room_member, remove_room_members, save_message, save_room, save_user, update_room
+import json
+from bson.json_util import dumps
+from flask import jsonify
+
+from db import add_room_members, edit_room_members, get_message, get_room, get_room_members, get_rooms_for_user, get_user, is_room_admin, is_room_member, remove_room_members, save_message, save_room, save_user, update_room
 from user import User
 from flask_session import Session
 
@@ -19,15 +23,14 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-
-
-
 @app.route('/')
 def home():
     if not session.get("username"):
         return redirect("/login")
     else:
-        rooms = get_rooms_for_user(session.get("username"))    
+        print("sesion = " , session.get("username"))
+        print("mail = ",session.get("email") )
+        rooms = get_rooms_for_user(session.get("email"))    
     return render_template("index.html", rooms=rooms)
 
 
@@ -36,21 +39,24 @@ def login():
     
     if session.get("username"):
         print("çalışıyor")
-        return render_template('index.html')
+        return redirect(url_for('home'))
     
     message = ''
     if request.method == 'POST':
         session['username']=request.form.get('username')
         session['password_input']=request.form.get('password')
         user = get_user(session['username'])
-                
+        session['email']=session['username']
+        print(session.get('email'))
+               
         if user and user.check_password( session['password_input']):
+            session['username']=user.username
             login_user(user)
             return redirect(url_for('home'))
         else:
             message='Giriş başarısız'
     
-    return render_template('login.html',message=message)
+    return render_template('login2.html',message=message)
 
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -91,10 +97,10 @@ def create_room():
 
         # Oda oluşturma işlemleri burada yapılır
         if len(room_name) and len(usernames):
-            room_id = save_room(room_name,  session.get("username"))
-            if session.get("username") in usernames:
-                usernames.remove(session.get("username"))
-            add_room_members(room_id, room_name, usernames, session.get("username"))
+            room_id = save_room(room_name,  session.get("email"))
+            if session.get("email") in usernames:
+                usernames.remove(session.get("email"))
+            add_room_members(room_id, room_name, usernames, session.get("email"))
             print("view room gidiiş")
             return redirect(url_for('view_room', room_id=room_id))
         else:
@@ -107,9 +113,10 @@ def edit_room(room_id):
     if not session.get("username"):
         return redirect("/login")
     
+    print("deneme deneme edit")
     room=get_room(room_id)
-    if room and is_room_admin(room_id,session['username']):
-        mevcut_room_member = [uye[1] for uye in get_room_members(int(room_id))]
+    if room and is_room_admin(room_id,session['email']):
+        mevcut_room_member = [uye for uye in edit_room_members(int(room_id))]
         
         if request.method == 'POST':
             room_name=request.form.get('room_name')
@@ -118,7 +125,12 @@ def edit_room(room_id):
             new_members=[username.strip() for username in request.form.get('members').split(',')]
             
             members_to_add = list(set(new_members) - set(mevcut_room_member))
+            
+            print("mevcut_room_member:", mevcut_room_member)
+            print("new_members:", new_members)
+            
             members_to_remove = list(set(mevcut_room_member) - set(new_members))
+            print(members_to_remove," silinen elemanlar")
             
             if len(members_to_add):
                 add_room_members(room_id, room_name, members_to_add,session['username'] )
@@ -140,14 +152,42 @@ def view_room(room_id):
     
     print("view room")
     room=get_room(room_id)
-    if room and is_room_member(room_id,session['username']):
+    if room and is_room_member(room_id,session['email']):
         room_uye=get_room_members(room_id)
-        print("ifin içine girdik ","room üye = ",room_uye)
+        print("room üye = ",room_uye)
         message=get_message(room_id)
         return render_template('view_room.html',username =session.get("username") ,room=room,room_members=room_uye,messages=message)
     else:
         return "Oda bulunamadı",404
 
+
+@app.route('/rooms/<room_id>/messages/')
+def get_older_messages(room_id):
+
+    if not session.get("username"):
+        return redirect("/login") 
+    print("Get_older_mesaj")
+    
+    room=get_room(room_id)
+    if room and is_room_member(room_id,session['email']):
+        page = int(request.args.get('page', 0))
+        messages=get_message(room_id,page) 
+        
+        message_dicts = [
+        {
+            "id": message[0],
+            "room_id": message[1],
+            "text": message[2],
+            "username": message[3],
+            "created_at": message[4]
+        }
+            for message in messages
+            ]
+        
+        return jsonify(message_dicts)
+    else:
+        return "Oda bulunamadı",404
+    
 
 @socketio.on('send_message')
 def handle_send_message_event(data):
@@ -166,6 +206,12 @@ def handle_join_room_event(data):
     app.logger.info("{} adlı kullanıcı {} odasına katıldı".format(data['username'],data['room']))
     join_room(data['room'])
     socketio.emit('join_room_announcement',data)
+
+@socketio.on('leave_room')
+def handle_leave_room_event(data):
+    app.logger.info("{} Adlı kullanıcı {} odasından ayrıldı".format(data['username'], data['room']))
+    leave_room(data['room'])
+    socketio.emit('leave_room_announcement', data, room=data['room'])
 
 @login_manager.user_loader
 def load_user(username):

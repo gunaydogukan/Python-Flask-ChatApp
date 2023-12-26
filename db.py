@@ -6,6 +6,7 @@ from user import User
 import mysql.connector
 from contextlib import closing
 
+
 mydb = mysql.connector.connect(
   host="localhost",
    user="root",
@@ -58,8 +59,6 @@ mycursor.execute("""
 """)
 
 
-
-
 def save_user(username, email, password):
     
     try:
@@ -79,30 +78,29 @@ def save_user(username, email, password):
         else:
             raise e
     
-def get_user(username):
+def get_user(email):
     user = None
     try:
         with closing(mydb.cursor()) as mycursor:
             mycursor.execute("""
                 SELECT id, username, email, password FROM users
-                WHERE username = %s
-            """, (username,))
+                WHERE email = %s
+            """, (email,))
             
             user_data = mycursor.fetchone()
-            print("USERDATA FETCHONE")
+            
             
             if user_data:
-                print("USERDATA İFİN İÇİ = ",user_data)
                 
                 user_id, username, email, password_hash = user_data
                 
-                print("VERİLER = ",user_id, username, email, password_hash)
+    
                 
-                user = User(user_id, email, password_hash)
+                user = User(username, email, password_hash)
                 
                 mycursor.clear_attributes()
-                print("USERE GİRDİ =",user)
-                return User(user_id, email, password_hash)
+    
+                return User(username, email, password_hash)
     except Exception as e:
         print(f"HATA ? ? ******** =  {e}")
     return None
@@ -228,7 +226,8 @@ def remove_room_members(room_id, usernames):
     except mysql.connector.Error as e:
         print(f"Hata: {e}")
 
-def get_room_members(room_id):
+
+def edit_room_members(room_id):
     try:
         mycursor.execute("""
             SELECT * FROM room_members
@@ -236,7 +235,64 @@ def get_room_members(room_id):
         """, (room_id,))
 
         room_members_data = mycursor.fetchall()
+        
+        emails = []
+        
+        for uye in room_members_data:
+            email = uye[1]  # E-posta adresi, tuple'ın ikinci elemanıdır
+            emails.append(email)
+            
+        print("emailler = = == ",emails)
+        
+        
+        room_members_data.clear()
+        for mail in emails:
+            room_members_data.append(mail)
+ 
+        print("Room_members data = ",room_members_data)
+        if room_members_data:
+            print(f"Room members found for room_id={room_id}")
+            return room_members_data
+        else:
+            print("No room members found.")
+            return []
+    except mysql.connector.Error as e:
+        print(f"Hata: {e}")
+        return []
 
+def get_room_members(room_id):
+    try:
+        
+        
+        mycursor.execute("""
+            SELECT * FROM room_members
+            WHERE room_id = %s
+        """, (room_id,))
+
+        room_members_data = mycursor.fetchall()
+        
+        emails = []
+        
+        for uye in room_members_data:
+            email = uye[1]  # E-posta adresi, tuple'ın ikinci elemanıdır
+            emails.append(email)
+            
+        print("emailler = = == ",emails)
+        
+        
+        room_members_data.clear()
+        for mail in emails:
+            user = get_user(mail)
+            
+            if user:
+                room_members_data.append(user.username)
+                print(room_members_data)
+            else:
+                print(f"Kullanıcı bulunamadı: {mail}")
+            # Eğer get_user(mail) None döndüyse, burada bir işlem yapabilirsiniz
+                
+        
+        print("Room_members data = ",room_members_data)
         if room_members_data:
             print(f"Room members found for room_id={room_id}")
             return room_members_data
@@ -249,13 +305,16 @@ def get_room_members(room_id):
 
 def get_rooms_for_user(username):
     try:
+        user=get_user(username)
+        username=user.email
+        print(username)
+        
         mycursor.execute("""
             SELECT * FROM room_members
             WHERE username = %s
         """, (username,))
 
         user_rooms_data = mycursor.fetchall()
-
         if user_rooms_data:
             print(f"Rooms found for user {username}")
             return user_rooms_data
@@ -268,6 +327,9 @@ def get_rooms_for_user(username):
 
 def is_room_member(room_id, username):
     try:
+        username_=get_user(username)
+        username=username_.email
+        
         mycursor.execute("""
             SELECT COUNT(*) FROM room_members
             WHERE room_id = %s AND username = %s
@@ -287,6 +349,9 @@ def is_room_member(room_id, username):
 
 def is_room_admin(room_id, username):
     try:
+        username_=get_user(username)
+        username=username_.email
+        
         mycursor.execute("""
             SELECT COUNT(*) FROM room_members
             WHERE room_id = %s AND username = %s AND is_room_admin = 1
@@ -318,31 +383,42 @@ def save_message(room_id,text,sender):
     except mysql.connector.Error as e:
         print(f"HATA: {e}")
 
-def get_message(room_id):
-    try:
+message_fetch_limit=3 # Sayfa başına gösterilecek mesaj sayısı
+
+def get_message(room_id,page=0):
+    try: 
+        offset = page * message_fetch_limit
+
         with closing(mydb.cursor()) as mycursor:
+            # # mycursor.execute("""
+                # SELECT * FROM messages
+                # WHERE room_id = %s
+                # ORDER BY created_at DESC
+                # LIMIT %s OFFSET %s
+            # """, (room_id, message_fetch_limit, offset))
+            
             mycursor.execute("""
                 SELECT * FROM messages
                 WHERE room_id = %s
+                ORDER BY created_at DESC
+                
             """, (room_id,))
+            
 
             messages_data = mycursor.fetchall()
 
             if messages_data:
-                print(f"Mesaj bulunda , Oda={room_id}")
+                print(f"Mesaj bulundu, Oda={room_id}")
                 messages_data = [list(message) for message in messages_data]
 
                 for message in messages_data:
                     message[4] = message[4].strftime("%d %b, %H:%M")
-
-                return messages_data
-
-    
+                    
                 
-                return messages_data
-                
+
+                return messages_data[::-1]
             else:
-                print(f"Mesaj Bulunamadı={room_id}")
+                print(f"Mesaj Bulunamadı, Oda={room_id}")
                 return []
     except mysql.connector.Error as e:
         print(f"Hata: {e}")
