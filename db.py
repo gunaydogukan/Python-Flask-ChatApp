@@ -401,14 +401,10 @@ def get_message(room_id,page=0):
                 SELECT * FROM messages
                 WHERE room_id = %s
                 ORDER BY created_at DESC
-<<<<<<< HEAD
                 
             """, (room_id,))
             
-=======
-                LIMIT %s OFFSET %s
-            """, (room_id, message_fetch_limit, offset))
->>>>>>> 35bc66d95a8cc1a2d1e8aec0d26175bdbe21e102
+
 
             messages_data = mycursor.fetchall()
 
