@@ -62,7 +62,7 @@ mycursor.execute("""
 def save_user(username, email, password):
     
     try:
-        # Şifreyi güvenli bir şekilde hashle
+        # girilen şifreyi hashle
         pasword_hash = generate_password_hash(password)
 
         # Kullanıcıyı veritabanına ekle
@@ -116,20 +116,20 @@ def save_room(room_name,created_by):
             raise ValueError("Kullanıcı bulunamadı veya geçersiz.")
 
         # Odayı veritabanına ekle
-        created_at = datetime.now()
+        created_at = datetime.now() #anlık zamanı alıyor 
         mycursor.execute("""
             INSERT INTO rooms (name, created_by, created_at)
             VALUES (%s, %s, %s)
         """, (room_name, created_by, created_at))
         
-        mycursor.execute("SELECT LAST_INSERT_ID()") 
-        room_id = mycursor.fetchone()[0]
-
+        mycursor.execute("SELECT LAST_INSERT_ID()") #en son  eklenen id yi alır
+        room_id = mycursor.fetchone()[0] #satırın sonucunda dönen veriyi alır ve o verinin 0. indeksini yani idsini alır
         mydb.commit()
     except Exception as e:
         print(f"HATA ? ? ******** = {e}")
     
-    add_room_member(room_id, room_name, created_by, created_by, is_room_admin=True)
+    add_room_member(room_id, room_name, created_by, created_by, is_room_admin=True) #ilk olarak odaya admin eklenir 
+                                                                                    #ve admin değeri true olur.
     return room_id
         
 def update_room(room_id, room_name):
@@ -262,8 +262,7 @@ def edit_room_members(room_id):
 
 def get_room_members(room_id):
     try:
-        
-        
+    
         mycursor.execute("""
             SELECT * FROM room_members
             WHERE room_id = %s
@@ -274,28 +273,28 @@ def get_room_members(room_id):
         emails = []
         
         for uye in room_members_data:
-            email = uye[1]  # E-posta adresi, tuple'ın ikinci elemanıdır
-            emails.append(email)
+            email = uye[1]  # E-posta adresi tupleın ikinci elemanıdır
+            emails.append(email) #emaile aktarılan değeri emails arrayine eklenir
             
-        print("emailler = = == ",emails)
+        #print("emailler = = == ",emails)
         
         
-        room_members_data.clear()
-        for mail in emails:
-            user = get_user(mail)
+        room_members_data.clear() #roommembers_data arreyini temizliyoruz çünkü sadece kullanıcı adlarını ekleiyicez
+        for mail in emails: 
+            user = get_user(mail) #tutulan email adreslerinin hangi kullanıcı adına sahip olduğunu buluyoruz
             
             if user:
-                room_members_data.append(user.username)
+                room_members_data.append(user.username) #bulunan kullanıcı adı room_members_dataya eklenir
                 print(room_members_data)
             else:
-                print(f"Kullanıcı bulunamadı: {mail}")
-            # Eğer get_user(mail) None döndüyse, burada bir işlem yapabilirsiniz
+                print(f"Kullanıcı bulunamadı: {mail}")  #get_user none döndüyse kullanıcı bulunamadı yazdırırız
+            
                 
         
         print("Room_members data = ",room_members_data)
         if room_members_data:
             print(f"Room members found for room_id={room_id}")
-            return room_members_data
+            return room_members_data #kullanıcıları döndürür liste halinde
         else:
             print("No room members found.")
             return []
@@ -327,12 +326,13 @@ def get_rooms_for_user(username):
 
 def is_room_member(room_id, username):
     try:
+        
         username_=get_user(username)
         username=username_.email
         
         mycursor.execute("""
-            SELECT COUNT(*) FROM room_members
-            WHERE room_id = %s AND username = %s
+                SELECT COUNT(*) FROM room_members
+                WHERE room_id = %s AND username = %s
         """, (room_id, username))
 
         count = mycursor.fetchone()[0]

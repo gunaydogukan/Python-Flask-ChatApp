@@ -28,15 +28,13 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 
-
-
 @app.route('/')
 def home():
     if not session.get("username"):
         return redirect("/login")
     else:
-        print("sesion = " , session.get("username"))
-        print("mail = ",session.get("email") )
+        #print("sesion = " , session.get("username"))
+        #print("mail = ",session.get("email") )
         rooms = get_rooms_for_user(session.get("email"))    
     return render_template("index.html", rooms=rooms)
 
@@ -45,7 +43,7 @@ def home():
 def login():
     
     if session.get("username"):
-        print("çalışıyor")
+        #print("çalışıyor")
         return redirect(url_for('home'))
     
     message = ''
@@ -54,9 +52,9 @@ def login():
         session['password_input']=request.form.get('password')
         user = get_user(session['username'])
         session['email']=session['username']
-        print(session.get('email'))
+        #print(session.get('email'))
                
-        if user and user.check_password( session['password_input']):
+        if user and user.check_password( session['password_input']): # dikkat et 
             session['username']=user.username
             login_user(user)
             return redirect(url_for('home'))
@@ -65,12 +63,11 @@ def login():
     
     return render_template('login2.html',message=message)
 
-
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     
     if session.get("username"):
-        print("çalışıyor")
+        #print("çalışıyor")
         return render_template('index.html')
 
     message = ''
@@ -100,20 +97,20 @@ def create_room():
     
     if request.method == 'POST':
         room_name = request.form.get('room_name')
-        usernames = [username.strip() for username in request.form.get('members').split(',')]
+        usernames = [username.strip() for username in request.form.get('members').split(',')] #strip == trim 
+        #usernames = bir list .
+        #print("oda oluşturma = ",usernames) 
 
         # Oda oluşturma işlemleri burada yapılır
-        if len(room_name) and len(usernames):
-            room_id = save_room(room_name,  session.get("email"))
+        if len(room_name) and len(usernames): #room_name ve usernames boş değilse çalışır , aynı şekilde string uzunluğunuda kontrol eder
+            room_id = save_room(room_name,  session.get("email")) #admin odayı kurar değeri 1 olur ve kendini ekler
             if session.get("email") in usernames:
-                usernames.remove(session.get("email"))
-            add_room_members(room_id, room_name, usernames, session.get("email"))
-            print("view room gidiiş")
+                usernames.remove(session.get("email")) #admin kendini tekrar eklememesi için kendini username lsitesinden çıakrtır
+            add_room_members(room_id, room_name, usernames, session.get("email")) #diğer kullanıcılar eknenir
             return redirect(url_for('view_room', room_id=room_id))
         else:
             message = "Oda oluşturulamadı."
     return render_template('create_room.html', message=message)
-
 
 @app.route('/rooms/<room_id>/edit', methods=['GET','POST'])
 def edit_room(room_id):
@@ -133,8 +130,8 @@ def edit_room(room_id):
             
             members_to_add = list(set(new_members) - set(mevcut_room_member))
             
-            print("mevcut_room_member:", mevcut_room_member)
-            print("new_members:", new_members)
+           # print("mevcut_room_member:", mevcut_room_member)
+            #print("new_members:", new_members)
             
             members_to_remove = list(set(mevcut_room_member) - set(new_members))
             print(members_to_remove," silinen elemanlar")
@@ -150,41 +147,67 @@ def edit_room(room_id):
     else:
         return "Oda bulunamadı.",404
     
-
 @app.route('/rooms/<room_id>/')
 def view_room(room_id):
     
     if not session.get("username"):
         return redirect("/login") 
     
-    print("view room")
+    #print("view room")
     room=get_room(room_id)
-    if room and is_room_member(room_id,session['email']):
-        room_uye=get_room_members(room_id)
+    if room and is_room_member(room_id,session['email']): #kullanıcı o odaya dahil mi değil mi kontrolu
+        room_uye=get_room_members(room_id) #odadaki kullanıcıları bulma
         print("room üye = ",room_uye)
         message=get_message(room_id)
         return render_template('view_room.html',username =session.get("username") ,room=room,room_members=room_uye,messages=message)
     else:
         return "Oda bulunamadı",404
 
+@app.route('/rooms/<room_id>/messages/')
+def get_older_messages(room_id): #mesajları json formatına çeviriyor
+
+    if not session.get("username"):
+        return redirect("/login") 
+    print("Get_older_mesaj")
+    
+    room=get_room(room_id)
+    if room and is_room_member(room_id,session['email']):
+        page = int(request.args.get('page', 0))
+        messages=get_message(room_id,page) 
+        
+        message_dicts = [
+        {
+            "id": message[0],
+            "room_id": message[1],
+            "text": message[2],
+            "username": message[3],
+            "created_at": message[4]
+        }
+            for message in messages
+            ]
+        
+        return jsonify(message_dicts)
+    else:
+        return "Oda bulunamadı",404
+
 
 @socketio.on('send_message')
 def handle_send_message_event(data):
-    app.logger.info("{},{} numaralı odaya mesah gönderdi: {}".format(data['username'],data['room'],data['message']))
+    app.logger.info("{},{} numaralı odaya mesaj gönderdi: {}".format(data['username'],data['room'],data['message']))
     
     data['created_at'] = datetime.now().strftime("%d %b, %H:%M")
     
-    str= data['room']
-    print(str)
-    save_message(str,data['message'],data['username'])
+    str= data['room'] #oda id 
+    #print(str)
+    save_message(str,data['message'],data['username']) #mesajları db kaydeder
     
-    socketio.emit('receive_message', data, room=data['room'])
+    socketio.emit('receive_message', data, room=data['room']) #mesajı alma fonk tetikler
 
 @socketio.on('join_room')
-def handle_join_room_event(data):
+def handle_join_room_event(data): #view_room bu fonksyonu tetiklediğinde çalışır
     app.logger.info("{} adlı kullanıcı {} odasına katıldı".format(data['username'],data['room']))
-    join_room(data['room'])
-    socketio.emit('join_room_announcement',data)
+    join_room(data['room']) #datadan gelen roomu join eder
+    socketio.emit('join_room_announcement',data) #odaya katıldığını broadcast eder  ,o fonksoyunu tetikler
 
 @socketio.on('leave_room')
 def handle_leave_room_event(data):
