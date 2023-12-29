@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4;
+            background-color: #EDE1D1;
             margin: 0;
             display: flex;
             height: 100vh;
@@ -15,9 +15,9 @@
         }
 
         #sidebar {
-            background-color: #007bff;
+            background-color: #6A704C;
             color: #fff;
-            width: 200px;
+            width: 17%;
             padding: 20px;
             box-sizing: border-box;
             overflow-y: auto;
@@ -30,22 +30,37 @@
             box-sizing: border-box;
             overflow-y: auto;
             transition: margin-left 0.5s;
+           
         }
+            
+       h3{
+        padding: 30px;
+        padding-top: 120px;
+       } 
+        #a{
+            font-size: 90%;
+            font-weight: bolder;
+            color: #51035C;
+            letter-spacing: 1px;
+            text-transform: capitalize;
+            padding-left: 2px;
+            padding-right: 2px;
+          
 
-        h1, h3 {
-            color: #333;
-            margin-bottom: 20px;
         }
+        #a:hover{
+            color:  white;
+            
+            
+          }
+         
 
         a {
             color: #fff;
             text-decoration: none;
         }
 
-        a:hover {
-            text-decoration: underline;
-        }
-
+        
         ul {
             list-style-type: none;
             padding: 0;
@@ -57,15 +72,17 @@
         }
 
         .chat-window {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background: url("https://r.resimlink.com/0u9mXSij5Gb.png");
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
             padding: 20px;
             box-sizing: border-box;
             overflow-y: auto;
-            background-color: #f9f9f9; /* Mesaj kutusunun arka planını soluk beyaz yap */
-            height: 65vh; /* Mesaj kutusunun yüksekliğini ayarla */
+            background-size: cover;
+            background-position: center;
+            height: 70vh;
         }
+        
 
         .user-list {
             list-style: none;
@@ -109,59 +126,84 @@
             padding: 10px;
             border: none;
             border-radius: 4px;
-            background-color: #007bff;
+            background-color: #6A704C;
             color: #fff;
             cursor: pointer;
         }
 
         .message-input button:hover {
-            background-color: #0056b3;
+            background-color: black;
         }
+        #cikis {
+            font-size: 95%%;;
+            font-weight: bolder;
+            color: black;
+            letter-spacing: 1px;
+            text-transform: capitalize;
+            padding-left: 2px;
+            padding-right: 2px;
+        }
+
+        #cikis:hover {
+            color: white;
+        }
+        #odaisim{
+            color: #51035C;         
+            font-weight: bolder;
+
+        }
+        #gon{
+            color: #300B5C;
+            
+           
+        }
+        #sent{
+            color: black;
+
+        }
+        #uye{
+          color: #300B5C;
+        }
+       
     </style>
 </head>
 <body>
     <div id="sidebar">
-        <h1>MaddChat</h1>
-        <h3>
-            {% if session.username %}
-                {{ session.username }} isimli kullanıcı giriş yaptı. <a href="/logout">Çıkış</a>
-            {% else %}
-                Giriş yapılamadı. <a href="/login">Giriş Yap</a>
-            {% endif %}
-        </h3>
-
-        <h3><a href="/">Odalarım</a></h3>
+        
+        
+        <h3><a id="a" href="/">Odalarım</a></h3>
         <ul>
             {% for room in rooms %}
                 <li><a href="/rooms/{{ room[0] }}">{{ room[2] }}, {{ room[0] }}</a></li>
             {% endfor %}
         </ul>
-        <h3><a href="/rooms/{{ room[0] }}/edit">Odayı Düzenle</a></h3>
-        <h3><a href="/create_room">Oda Oluştur</a></h3>
-        
+        <h3><a id="a" href="/rooms/{{ room[0] }}/edit">Odayı Düzenle</a></h3>
+        <h3><a id="a" href="/create_room">Oda Oluştur</a></h3>
+       <h3> <a id="cikis" href="/logout">Çıkış</a> </h3>
     </div>
     
     <div id="main-content">
-        <h1>{{ room[1] }} adlı odaya hoşgeldiniz</h1>
+        <h1 id="odaisim">({{ room[1] }})  Odasına Hoş geldiniz.🙂</h1>
         <div class="chat-window" id='messages'>
             {% for message in messages %}
                 <div>
-                    <b>{{ message[3] }}&nbsp;[{{message[4]}}]:&nbsp;</b>{{ message[2] }}
+                    <b id="gon">{{ message[3] }}&nbsp;[{{message[4]}}]:&nbsp; </b> 
+                    <b id="sent"> {{ message[2] }} </b>
                 </div>
             {% endfor %}
         </div>
 
         <form id="message_input_form" class="message-input">
-            <input type="text" id="message_input" placeholder="Mesajınızı yazın">
+          <input  type="text" id="message_input" placeholder="Mesajınızı yazın"> 
             <button type="submit">Gönder</button>
         </form>
 
-        <h2>Üyeler</h2>
-        <ul class="user-list">
+        <h2 id="uye">Üyeler</h2>
+       <b color="black"> <ul  class="user-list">
             {% for member in room_members %}
                 <li>{{ member }}</li>
             {% endfor %}
-        </ul>
+        </ul> </b>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,17 +8,19 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4;
+            background-color: #EDE1D1;
             margin: 0;
             display: flex;
             height: 100vh;
             overflow: hidden;
+            box-sizing: border-box;
+            /* Kutu modelini border-box olarak ayarla */
         }
 
         #sidebar {
-            background-color: #007bff;
+            background-color: #6A704C;
             color: #fff;
-            width: 200px;
+            width: 220px;
             padding: 20px;
             box-sizing: border-box;
             overflow-y: auto;
@@ -25,6 +28,10 @@
         }
 
         #main-content {
+            background: url("https://r.resimlink.com/FewfX3sxp2V-.png");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
             flex: 1;
             padding: 20px;
             box-sizing: border-box;
@@ -32,18 +39,59 @@
             transition: margin-left 0.5s;
         }
 
-        h1, h3 {
-            color: #333;
-            margin-bottom: 20px;
+        @media only screen and (max-width: 768px) {
+            #main-content {
+                background-size: contain;
+                padding: 10px;
+                /* Tablet için özel padding ayarı */
+            }
+
+            #sidebar {
+                display: none;
+                /* Ekran genişliği 768px altında ise sidebar'ı gizle */
+            }
+
+            #main-content {
+                width: 100%;
+                /* Tablet için genişliği tam ekran yap */
+            }
+        }
+
+        @media only screen and (max-width: 480px) {
+            #main-content {
+                background-size: cover;
+                padding: 5px;
+            }
+        }
+
+        h2 {
+            color: #EDE1D1;
+            margin-top: 50%;
+        }
+
+        h3 {
+            color: #EDE1D1;
+            margin-top: 100%;
+        }
+
+        #cikis {
+            font-weight: bolder;
+            color: black;
+            font-size: 23px;
+            border: 3px solid black;
+            padding: 2px;
+            padding-top: 0px;
+            padding-right: 35px;
+            padding-left: 1px;
+        }
+
+        #cikis:hover {
+            background-color: red;
         }
 
         a {
-            color: #fff;
+            color: black;
             text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
         }
 
         ul {
@@ -52,93 +100,65 @@
             margin: 0;
         }
 
-        li {
-            margin-bottom: 10px;
+        #od {
+            
+            font-size: 90%;
+            font-weight: bolder;
+            color: #51035C;
+            letter-spacing: 1px;
+            text-transform: capitalize;
+            padding-left: 2px;
+            padding-right: 2px;
+        }
+        #od:hover{
+          color:  #412E27;
+          border: 3px solid black ;
+          
         }
 
-        .chat-window {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            box-sizing: border-box;
-            overflow-y: auto;
+        #odakur {
+            font-weight: bolder;
+            color: black;
+            font-size: 23px;
+            border: 3px solid black;
+            font-stretch: 50%;
+            padding-left: 2px;
+            padding-right: 2px;
         }
 
-        .user-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        #odakur:hover {
+            background-color: #EDE1D1;
         }
 
-        .user-list-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            background-color: #fff;
-            margin-bottom: 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .user-list-item:hover {
-            background-color: #f0f0f0;
-        }
-
-        .selected {
-            background-color: #f0f0f0;
-        }
-
-        .message-input {
-            display: flex;
-            margin-top: 20px;
-        }
-
-        .message-input input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-right: 10px;
-        }
-
-        .message-input button {
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            background-color: #007bff;
-            color: #fff;
-            cursor: pointer;
-        }
-
-        .message-input button:hover {
-            background-color: #0056b3;
+        #yazi {
+            color: #EDE1D1;
         }
     </style>
 </head>
+
 <body>
     <div id="sidebar">
-        <h1>MaddChat</h1>
-        <h3>
+        <h2>
             {% if session.username %}
-                {{ session.username }} isimli kullanıcı giriş yaptı. <a href="/logout">Çıkış</a>
+            {{ session.username }}   
+            <h2 id="yazi">  Hoş Geldin! Eğlenmeye Hazır Mısın ?</h2>
             {% else %}
-                Giriş yapılamadı. <a href="/login">Giriş Yap</a>
+            Giriş yapılamadı. <a href="/login">Giriş Yap</a>
             {% endif %}
-        </h3>
+        </h2>
 
         <h3>Odalarım</h3>
         <ul>
             {% for room in rooms %}
-                <li><a href="/rooms/{{ room[0] }}">{{ room[2] }}, {{ room[0] }}</a></li>
+            <li><a id="od" href="/rooms/{{ room[0] }}">{{ room[2] }}, {{ room[0] }}</a></li>
             {% endfor %}
         </ul>
 
-        <h3><a href="/create_room">Oda Oluştur</a></h3>
+        <h3><a id="odakur" href="/create_room">Oda Oluştur</a>
+            <a id="cikis" href="/logout">Çıkış Yap</a></h3>
     </div>
-    
-        
+
+    <div id="main-content"></div>
 
     <script>
         // JavaScript ile sidebar'ın gizlenip gösterilmesini sağlamak için
@@ -151,4 +171,5 @@
         }
     </script>
 </body>
+
 </html>
