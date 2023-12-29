@@ -61,7 +61,7 @@ def login():
         else:
             message='Giriş başarısız'
     
-    return render_template('login2.html',message=message)
+    return render_template('login.html',message=message)
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
