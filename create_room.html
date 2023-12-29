@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style> 
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url("https://r.resimlink.com/Caxedy.png") no-repeat;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 80%;
+            width: 400px; /* İstediğiniz genişliği ayarlayabilirsiniz */
+            background-color: rgba(255, 255, 255, 0.8); /* Beyaz renkli ve hafif saydam arka plan */
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #333;
+        }
+        
+        form {
+            margin-top: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background-color: #4caf50;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+    </style>
+    <meta charset="UTF-8">
+    <title>MaddChat</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Yeni Oda</h1>
+        <h3>{{ message }}</h3>
+        <form method="post">
+            <label> <b> Oda adı: </b></label>
+            <input type="text" name="room_name">
+            <br>
+            <label><b>Üyeler:
+               <br> (Eklemek istediğiniz kişilerin e-posta adreslerini giriniz) </b></label>
+            <input type="text" name="members">
+            <br>
+            <button type="submit">Oluştur</button>
+        </form>
+    </div>
+</body>
+</html>

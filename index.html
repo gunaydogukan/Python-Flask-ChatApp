@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaddChat</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #EDE1D1;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            box-sizing: border-box;
+            /* Kutu modelini border-box olarak ayarla */
+        }
+
+        #sidebar {
+            background-color: #6A704C;
+            color: #fff;
+            width: 220px;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        #main-content {
+            background: url("https://r.resimlink.com/FewfX3sxp2V-.png");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            flex: 1;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            transition: margin-left 0.5s;
+        }
+
+        @media only screen and (max-width: 768px) {
+            #main-content {
+                background-size: contain;
+                padding: 10px;
+                /* Tablet için özel padding ayarı */
+            }
+
+            #sidebar {
+                display: none;
+                /* Ekran genişliği 768px altında ise sidebar'ı gizle */
+            }
+
+            #main-content {
+                width: 100%;
+                /* Tablet için genişliği tam ekran yap */
+            }
+        }
+
+        @media only screen and (max-width: 480px) {
+            #main-content {
+                background-size: cover;
+                padding: 5px;
+            }
+        }
+
+        h2 {
+            color: #EDE1D1;
+            margin-top: 50%;
+        }
+
+        h3 {
+            color: #EDE1D1;
+            margin-top: 100%;
+        }
+
+        #cikis {
+            font-weight: bolder;
+            color: black;
+            font-size: 23px;
+            border: 3px solid black;
+            padding: 2px;
+            padding-top: 0px;
+            padding-right: 35px;
+            padding-left: 1px;
+        }
+
+        #cikis:hover {
+            background-color: red;
+        }
+
+        a {
+            color: black;
+            text-decoration: none;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #od {
+            
+            font-size: 90%;
+            font-weight: bolder;
+            color: #51035C;
+            letter-spacing: 1px;
+            text-transform: capitalize;
+            padding-left: 2px;
+            padding-right: 2px;
+        }
+        #od:hover{
+          color:  #412E27;
+          border: 3px solid black ;
+          
+        }
+
+        #odakur {
+            font-weight: bolder;
+            color: black;
+            font-size: 23px;
+            border: 3px solid black;
+            font-stretch: 50%;
+            padding-left: 2px;
+            padding-right: 2px;
+        }
+
+        #odakur:hover {
+            background-color: #EDE1D1;
+        }
+
+        #yazi {
+            color: #EDE1D1;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar">
+        <h2>
+            {% if session.username %}
+            {{ session.username }}   
+            <h2 id="yazi">  Hoş Geldin! Eğlenmeye Hazır Mısın ?</h2>
+            {% else %}
+            Giriş yapılamadı. <a href="/login">Giriş Yap</a>
+            {% endif %}
+        </h2>
+
+        <h3>Odalarım</h3>
+        <ul>
+            {% for room in rooms %}
+            <li><a id="od" href="/rooms/{{ room[0] }}">{{ room[2] }}, {{ room[0] }}</a></li>
+            {% endfor %}
+        </ul>
+
+        <h3><a id="odakur" href="/create_room">Oda Oluştur</a>
+            <a id="cikis" href="/logout">Çıkış Yap</a></h3>
+    </div>
+
+    <div id="main-content"></div>
+
+    <script>
+        // JavaScript ile sidebar'ın gizlenip gösterilmesini sağlamak için
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('hidden');
+            mainContent.classList.toggle('hidden');
+        }
+    </script>
+</body>
+
+</html>

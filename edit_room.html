@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaddChat - Oda Düzenleme</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: flex-end;
+            background: url("https://r.resimlink.com/0pdqWG8c-.png") no-repeat;
+            background-size: cover; 
+            background-position: center;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 12px;
+            margin-top: 5%;
+            margin-bottom: 1%;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%; 
+            max-width: 400px; 
+        }
+
+        h1, h3 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%; /* Genişlik oranını artır */
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+    </style>
+</head>
+<body>
+    <form method="post">
+        <h1>MaddChat - Oda Düzenle</h1>
+        <h3>{{ message }}</h3>
+        <label  for="room_name"><b> Oda adı: </b> </label>
+        <input type="text" name="room_name" id="room_name" value="{{ room }}" required>
+        <label for="members"> <b> Üyeler: </b></label>
+        <input type="text" name="members" id="members" value="{{ room_members_str }}" required>
+        <button type="submit">Güncelle</button>
+    </form>
+</body>
+</html>
